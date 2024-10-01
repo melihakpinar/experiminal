@@ -53,9 +53,6 @@ export default class ZkappWorkerClient {
   }
 
   createAddParticipantTransaction(nullifierJson: any, participantData: Field) {
-    console.log("zkaapWorkerClient createAddParticipantTransaction");
-    console.log('nullifierJson', nullifierJson);
-    console.log('participantData', participantData);
     return this._call('createAddParticipantTransaction', {nullifierJson, participantData});
   }
 

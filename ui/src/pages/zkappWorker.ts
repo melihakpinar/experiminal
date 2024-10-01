@@ -49,23 +49,24 @@ const functions = {
     const isInitialized = await state.zkapp!.isInitialized.get();
     return JSON.stringify(isInitialized.toJSON());
   },
-  // TODO: Implement the following functions
   createInitStateTransaction: async (args: {initialNullifiersMerkleRoot: Field, initialParticipantsDataRoot: Field, correctKeyAnswers: Field, endTimestamp: Field}) => {
     const transaction = await Mina.transaction(async () => {
       await state.zkapp!.initState(args.initialNullifiersMerkleRoot, args.initialParticipantsDataRoot, args.correctKeyAnswers, args.endTimestamp);
     });
     state.transaction = transaction;
   },
-  // TODO: Implement the following functions
   createAddParticipantTransaction: async (args: {nullifierJson: any, participantData: Field}) => {
     const nullifier = Nullifier.fromJSON(args.nullifierJson);
+    const nullifierKey = nullifier.key();
     const nullifierMerkleMap = new MerkleMap();
     const participantDataMerkleMap = new MerkleMap();
-    const nullifierKey = nullifier.key();
     const nullifierWitness = nullifierMerkleMap.getWitness(nullifierKey);
-    const participantDataWitness = participantDataMerkleMap.getWitness(args.participantData);
+    console.log('participantDataMerkleMap:', participantDataMerkleMap);
+    const participantData = args.participantData;
+    console.log('participantData:', participantData);
+    const participantDataWitness = participantDataMerkleMap.getWitness(participantData);
     const transaction = await Mina.transaction(async () => {
-      await state.zkapp!.addParticipantIfEligible(nullifier, nullifierWitness, args.participantData, participantDataWitness);
+      await state.zkapp!.addParticipantIfEligible(nullifier, nullifierWitness, participantData, participantDataWitness);
     });
     state.transaction = transaction;
   },
@@ -96,7 +97,6 @@ if (typeof window !== 'undefined') {
     async (event: MessageEvent<ZkappWorkerRequest>) => {
       console.log('Worker received message:', event.data);
       const returnData = await functions[event.data.fn](event.data.args);
-
       const message: ZkappWorkerResponse = {
         id: event.data.id,
         data: returnData,

@@ -166,9 +166,7 @@ export default function Home() {
         const nullifierJson = await (window as any).mina?.createNullifier({
             message: [hashedKeyQuestionAnswers.toString()],
         });
-        const nullifier = Nullifier.fromJSON(nullifierJson);
         console.log("Nullifier JSON: ", nullifierJson);
-        console.log("Nullifier: ", nullifier);
         setState({ ...state, creatingTransaction: true });
         await state.zkappWorkerClient!.createAddParticipantTransaction(nullifierJson, hashedAnswersWithTime);
         await state.zkappWorkerClient!.proveTransaction();
