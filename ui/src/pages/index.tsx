@@ -159,14 +159,13 @@ export default function Home() {
         const keyQuestionAnswers = answers.filter((_, i) => keyQuestions.includes(i + 1));
         const hashedKeyQuestionAnswers = Poseidon.hash(keyQuestionAnswers.map((ans) => Field(parseInt(ans))));
         const currentTime = Date.now();
-        const hashedAnswersWithTime = Poseidon.hash([hashedAnswers, Field(currentTime)]);
+        const hashedAnswersWithTime = Poseidon.hash([hashedAnswers, Field(currentTime)]).toBigInt();
         console.log("Answers: ", answers);
         console.log("Current time: ", currentTime);
         console.log("Hashed answers with time: ", hashedAnswersWithTime.toString());
         const nullifierJson = await (window as any).mina?.createNullifier({
             message: [hashedKeyQuestionAnswers.toString()],
         });
-        console.log("Nullifier JSON: ", nullifierJson);
         setState({ ...state, creatingTransaction: true });
         await state.zkappWorkerClient!.createAddParticipantTransaction(nullifierJson, hashedAnswersWithTime);
         await state.zkappWorkerClient!.proveTransaction();
