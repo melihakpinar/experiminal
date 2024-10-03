@@ -35,13 +35,6 @@ CREATE TABLE `config` (
   `end_timestamp` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `config`
---
-
-INSERT INTO `config` (`initialization_timestamp`, `end_timestamp`) VALUES
-(1727947228531, 1711141920000);
-
 -- --------------------------------------------------------
 
 --
@@ -64,15 +57,6 @@ CREATE TABLE `questions` (
   `question_text` text NOT NULL,
   `is_key` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `questions`
---
-
-INSERT INTO `questions` (`id`, `question_text`, `is_key`) VALUES
-(7, 'ASDAD', 1),
-(8, 'SADASD', 0),
-(9, 'ADADAS', 0);
 
 --
 -- Indexes for dumped tables
