@@ -10,6 +10,8 @@
     "ts-watch": "tsc --noEmit --incremental --watch"
   },
   "dependencies": {
+    "axios": "^1.7.7",
+    "mysql2": "^3.11.3",
     "next": "^14.2.13",
     "o1js": "^1.*",
     "react": "^18",

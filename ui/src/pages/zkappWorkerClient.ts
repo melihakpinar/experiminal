@@ -66,10 +66,10 @@ export default class ZkappWorkerClient {
   }
 
   createInitStateTransaction(
-    initialNullifiersMerkleRoot: Field,
-    initialParticipantsDataRoot: Field,
-    correctKeyAnswers: Field,
-    endTimestamp: Field
+    initialNullifiersMerkleRoot: bigint,
+    initialParticipantsDataRoot: bigint,
+    correctKeyAnswers: bigint,
+    endTimestamp: bigint
   ) {
     return this._call('createInitStateTransaction', {
       initialNullifiersMerkleRoot,
