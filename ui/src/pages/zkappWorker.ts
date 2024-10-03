@@ -51,17 +51,21 @@ const functions = {
   },
 
   createInitStateTransaction: async (args: {
-    initialNullifiersMerkleRoot: Field,
-    initialParticipantsDataRoot: Field,
-    correctKeyAnswers: Field,
-    endTimestamp: Field
+    initialNullifiersMerkleRoot: bigint,
+    initialParticipantsDataRoot: bigint,
+    correctKeyAnswers: bigint,
+    endTimestamp: bigint
   }) => {
+    console.log("Initial nullifiers merkle root: ", args.initialNullifiersMerkleRoot);
+    console.log("Initial participants data root: ", args.initialParticipantsDataRoot);
+    console.log("Correct key answers: ", args.correctKeyAnswers);
+    console.log("End timestamp: ", args.endTimestamp);
     const transaction = await Mina.transaction(() => 
       state.zkapp!.initState(
-        args.initialNullifiersMerkleRoot,
-        args.initialParticipantsDataRoot,
-        args.correctKeyAnswers,
-        args.endTimestamp
+        Field(args.initialNullifiersMerkleRoot),
+        Field(args.initialParticipantsDataRoot),
+        Field(args.correctKeyAnswers),
+        Field(args.endTimestamp)
       )
     );
     state.transaction = transaction;
@@ -75,7 +79,6 @@ const functions = {
     const nullifierWitness = nullifierMerkleMap.getWitness(nullifierKey);
     const participantData = Field(args.participantData);
     const participantDataWitness = participantDataMerkleMap.getWitness(participantData);
-    
     const transaction = await Mina.transaction(() => 
       state.zkapp!.addParticipantIfEligible(nullifier, nullifierWitness, participantData, participantDataWitness)
     );

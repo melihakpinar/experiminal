@@ -7,8 +7,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method === 'POST') {
         try {
             const connection = await mysql.createConnection(dbConfig);
-            const { answers } = req.body;
-            await connection.execute('INSERT INTO answers (answers) VALUES (?)', [answers]);
+            const { answers, timestamp } = req.body;
+            await connection.execute('INSERT INTO answers (answers, timestamp) VALUES (?, ?)', [answers, timestamp]);
             res.status(200).json({ success: true });
         } catch (error) {
             console .error('Error adding answers:', error);

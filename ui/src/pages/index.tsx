@@ -1,24 +1,11 @@
-import { Field, Nullifier, PublicKey, Poseidon } from 'o1js';
+import { Field, PublicKey, Poseidon } from 'o1js';
 import { useEffect, useState } from 'react';
-import GradientBG from '../components/GradientBG';
 import styles from '../styles/Home.module.css';
 import ZkappWorkerClient from './zkappWorkerClient';
+import axios from 'axios';
 
-const transactionFee = 0.1;
-const ZKAPP_ADDRESS = 'B62qqqHWcqFxpUYqgUwkphf8GjCBCUoYsi9BTdEvekxHz7zZAJnBLKG';
-const questions = [
-    "Have you experienced any cold or flu-like symptoms in the past two weeks?",
-    "Do you currently have any chronic medical conditions (e.g., diabetes, hypertension)?",
-    "Have you taken any prescription medication in the last month?",
-    "Do you regularly engage in physical exercise (at least 30 minutes per day, 3 times a week)?",
-    "Do you smoke cigarettes or use any tobacco products?",
-    "Have you had a full medical check-up in the past year?",
-    "Do you experience frequent stress or anxiety?",
-    "Have you had any vaccinations in the past year?",
-    "Do you consume alcohol more than once per week?",
-    "Do you sleep for at least 7 hours per night on average?"
-];
-const keyQuestions = [7, 10];
+const zkappAddress = "B62qqqHWcqFxpUYqgUwkphf8GjCBCUoYsi9BTdEvekxHz7zZAJnBLKG"
+const transactionFee = 0;
 
 export default function Home() {
     const [state, setState] = useState({
@@ -34,7 +21,9 @@ export default function Home() {
 
     const [displayText, setDisplayText] = useState('');
     const [transactionLink, setTransactionLink] = useState('');
-    const [message, setMessage] = useState(''); // Display feedback message
+    const [message, setMessage] = useState('');
+    const [questions, setQuestions] = useState<Array<{ id: number, question_text: string }>>([]);
+    const [keyQuestions, setKeyQuestions] = useState<number[]>([]);
 
     useEffect(() => {
         const timeout = (seconds: number): Promise<void> => {
@@ -79,7 +68,7 @@ export default function Home() {
                 console.log('zkApp compiled');
                 setDisplayText('zkApp compiled...');
 
-                const zkappPublicKey = PublicKey.fromBase58(ZKAPP_ADDRESS);
+                const zkappPublicKey = PublicKey.fromBase58(zkappAddress);
                 await zkappWorkerClient.initZkappInstance(zkappPublicKey);
 
                 console.log('Getting zkApp state...');
@@ -160,13 +149,11 @@ export default function Home() {
         const hashedKeyQuestionAnswers = Poseidon.hash(keyQuestionAnswers.map((ans) => Field(parseInt(ans))));
         const currentTime = Date.now();
         const hashedAnswersWithTime = Poseidon.hash([hashedAnswers, Field(currentTime)]).toBigInt();
-        console.log("Answers: ", answers);
-        console.log("Current time: ", currentTime);
-        console.log("Hashed answers with time: ", hashedAnswersWithTime.toString());
         const nullifierJson = await (window as any).mina?.createNullifier({
             message: [hashedKeyQuestionAnswers.toString()],
         });
         setState({ ...state, creatingTransaction: true });
+        /*
         await state.zkappWorkerClient!.createAddParticipantTransaction(nullifierJson, hashedAnswersWithTime);
         await state.zkappWorkerClient!.proveTransaction();
         const transactionJSON = await state.zkappWorkerClient!.getTransactionJSON();
@@ -178,7 +165,12 @@ export default function Home() {
         console.log(`View transaction at ${transactionLink}`);
         setTransactionLink(transactionLink);
         setDisplayText(transactionLink);
+        */
         setState({ ...state, creatingTransaction: false });
+        console.log("Adding participant to database");
+        console.log(state.publicKey!.toBase58());
+        await axios.post('/api/add_participant', { public_key: state.publicKey!.toBase58() });
+        await axios.post('/api/add_answers', { answers: answers.join(','), timestamp: currentTime });
     };
 
     // UI Elements
@@ -214,32 +206,43 @@ export default function Home() {
             <h2>Research Survey</h2>
             <form onSubmit={handleSurveySubmit}>
                 {questions.map((question, index) => (
-                    <div key={index} className={styles.question}>
-                        <h3>{index + 1}. {question}</h3>
+                    <div key={question.id} className={styles.question}>
+                        <h3>{index + 1}. {question.question_text}</h3>
                         <div className={styles.options}>
-                            <label><input type="radio" name={`q${index + 1}`} value="1" required /> Yes</label>
-                            <label><input type="radio" name={`q${index + 1}`} value="0" /> No</label>
+                            <label><input type="radio" name={`q${question.id}`} value="1" required /> Yes</label>
+                            <label><input type="radio" name={`q${question.id}`} value="0" /> No</label>
                         </div>
                     </div>
                 ))}
-                <button type="submit" disabled={false} className={styles.submitButton}>
+                <button type="submit" disabled={state.creatingTransaction} className={styles.submitButton}>
                     {state.creatingTransaction ? 'Submitting...' : 'Submit'}
                 </button>
             </form>
             {message && <p className={styles.message}>{message}</p>}
-            <p>Total Participants: {state.currentParticipantCount!.toString()}</p>
         </div>
     );
 
+    useEffect(() => {
+        const fetchQuestions = async () => {
+            try {
+                const response = await axios.get('/api/get_questions');
+                setQuestions(response.data);
+                setKeyQuestions(response.data.filter((q: any) => q.is_key === 1).map((q: any) => q.id));
+            } catch (error) {
+                console.error('Error fetching questions:', error);
+            }
+        };
+
+        fetchQuestions();
+    }, []);
+
     return (
-        <GradientBG>
-            <div className={styles.main} style={{ padding: 0 }}>
-                <div className={styles.center} style={{ padding: 0 }}>
-                    {setup}
-                    {accountDoesNotExist}
-                    {mainContent}
-                </div>
+        <div className={styles.main} style={{ padding: 0 }}>
+            <div className={styles.center} style={{ padding: 0 }}>
+                {setup}
+                {accountDoesNotExist}
+                {mainContent}
             </div>
-        </GradientBG>
+        </div>
     );
 }
