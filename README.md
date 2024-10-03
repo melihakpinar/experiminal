@@ -6,6 +6,8 @@
 ![GitHub Forks](https://img.shields.io/github/forks/melihakpinar/experiminal)
 ![GitHub Stars](https://img.shields.io/github/stars/melihakpinar/experiminal)
 
+![Description of the image](https://github.com/user-attachments/assets/00e476f7-4076-4219-90fe-80beed01214d)
+
 ## Table of Contents
 
 - [Introduction](#introduction)
@@ -20,6 +22,8 @@
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
+
+
 
 ## Introduction
 
