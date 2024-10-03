@@ -1,13 +1,6 @@
 import mysql from 'mysql2/promise';
 import { NextApiRequest, NextApiResponse } from 'next';
-
-const dbConfig = {
-    host: 'localhost',
-    port: 3307,
-    user: 'root',
-    password: '',
-    database: 'experiminal',
-};
+import { dbConfig } from './db_config';
 
 // GET /api/get_answers
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
