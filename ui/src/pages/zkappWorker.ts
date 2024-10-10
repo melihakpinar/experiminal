@@ -10,42 +10,42 @@ const state = {
 };
 
 const functions = {
-  setActiveInstanceToDevnet: async () => {
+  setActiveInstanceToDevnet: async (args: {}) => {
     const Network = Mina.Network('https://api.minascan.io/node/devnet/v1/graphql');
     console.log('Devnet network instance configured.');
     Mina.setActiveInstance(Network);
   },
 
-  loadContract: async () => {
+  loadContract: async (args: {}) => {
     const { Experiminal } = await import('../../../contracts/build/src/Experiminal.js');
     state.Experiminal = Experiminal;
   },
 
-  compileContract: async () => {
+  compileContract: async (args: {}) => {
     await state.Experiminal!.compile();
   },
 
-  fetchAccount: async ({ publicKey58 }: { publicKey58: string }) => {
-    const publicKey = PublicKey.fromBase58(publicKey58);
+  fetchAccount: async (args: { publicKey58: string }) => {
+    const publicKey = PublicKey.fromBase58(args.publicKey58);
     return await fetchAccount({ publicKey });
   },
 
-  initZkappInstance: async ({ publicKey58 }: { publicKey58: string }) => {
-    const publicKey = PublicKey.fromBase58(publicKey58);
+  initZkappInstance: async (args: { publicKey58: string }) => {
+    const publicKey = PublicKey.fromBase58(args.publicKey58);
     state.zkapp = new state.Experiminal!(publicKey);
   },
 
-  getParticipantsCount: async () => {
+  getParticipantsCount: async (args: {}) => {
     const currentParticipantsCount = await state.zkapp!.participantsCount.get();
     return JSON.stringify(currentParticipantsCount.toJSON());
   },
 
-  getEndTimestamp: async () => {
+  getEndTimestamp: async (args: {}) => {
     const endTimestamp = await state.zkapp!.endTimestamp.get();
     return JSON.stringify(endTimestamp.toJSON());
   },
 
-  getIsInitialized: async () => {
+  getIsInitialized: async (args: {}) => {
     const isInitialized = await state.zkapp!.isInitialized.get();
     return JSON.stringify(isInitialized.toJSON());
   },
@@ -56,10 +56,19 @@ const functions = {
     correctKeyAnswers: bigint,
     endTimestamp: bigint
   }) => {
-    console.log("Initial nullifiers merkle root: ", args.initialNullifiersMerkleRoot);
-    console.log("Initial participants data root: ", args.initialParticipantsDataRoot);
-    console.log("Correct key answers: ", args.correctKeyAnswers);
-    console.log("End timestamp: ", args.endTimestamp);
+    if (typeof args.initialNullifiersMerkleRoot !== 'bigint') {
+        throw new Error('initialNullifiersMerkleRoot must be a bigint');
+    }
+    if (typeof args.initialParticipantsDataRoot !== 'bigint') {
+        throw new Error('initialParticipantsDataRoot must be a bigint');
+    }
+    if (typeof args.correctKeyAnswers !== 'bigint') {
+        throw new Error('correctKeyAnswers must be a bigint');
+    }
+    if (typeof args.endTimestamp !== 'bigint') {
+        throw new Error('endTimestamp must be a bigint');
+    }
+    console.log('Creating init state transaction');
     const transaction = await Mina.transaction(() => 
       state.zkapp!.initState(
         Field(args.initialNullifiersMerkleRoot),
@@ -85,11 +94,11 @@ const functions = {
     state.transaction = transaction;
   },
 
-  proveTransaction: async () => {
-    return state.transaction!.prove();
+  proveTransaction: async (args: {}) => {
+    await state.transaction!.prove();
   },
 
-  getTransactionJSON: async () => {
+  getTransactionJSON: async (args: {}) => {
     return state.transaction!.toJSON();
   },
 };
@@ -109,6 +118,7 @@ export type ZkappWorkerResponse = {
 
 if (typeof window !== 'undefined') {
   addEventListener('message', async (event: MessageEvent<ZkappWorkerRequest>) => {
+    console.log('event.data.fn', event.data.fn);
     console.log('event.data.args', event.data.args);
     const returnData = await functions[event.data.fn](event.data.args);
     const message: ZkappWorkerResponse = { id: event.data.id, data: returnData };

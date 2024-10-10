@@ -4,7 +4,7 @@ import styles from '../styles/Home.module.css';
 import ZkappWorkerClient from './zkappWorkerClient';
 import axios from 'axios';
 
-const zkappAddress = "B62qqqHWcqFxpUYqgUwkphf8GjCBCUoYsi9BTdEvekxHz7zZAJnBLKG"
+const zkappAddress = "B62qqt7DfCodB6QUQfCahi74LQjeNgNpondae4GTeA5SQvMTDShnZ6w"
 const transactionFee = 0;
 
 export default function Home() {
@@ -141,19 +141,24 @@ export default function Home() {
             setMessage('Please answer all questions.');
             return;
         }
+
+        const answersWithIDs = Array.from(form.elements)
+            .filter((el) => (el as HTMLInputElement).checked)
+            .map((el) => ({ id: parseInt((el as HTMLInputElement).name.slice(1)), answer: parseInt((el as HTMLInputElement).value) }));
         const answers = Array.from(form.elements)
             .filter((el) => (el as HTMLInputElement).checked)
             .map((el) => (el as HTMLInputElement).value);
+        
         const hashedAnswers = Poseidon.hash(answers.map((ans) => Field(parseInt(ans))));
-        const keyQuestionAnswers = answers.filter((_, i) => keyQuestions.includes(i + 1));
-        const hashedKeyQuestionAnswers = Poseidon.hash(keyQuestionAnswers.map((ans) => Field(parseInt(ans))));
+        const keyQuestionAnswers = answersWithIDs.filter((ans) => keyQuestions.includes(ans.id)).map((ans) => ans.answer);
+        const hashedKeyQuestionAnswers = Poseidon.hash(keyQuestionAnswers.map((ans) => Field(ans)));
+        console.log('Hashed key question answers:', hashedKeyQuestionAnswers.toString());
         const currentTime = Date.now();
         const hashedAnswersWithTime = Poseidon.hash([hashedAnswers, Field(currentTime)]).toBigInt();
         const nullifierJson = await (window as any).mina?.createNullifier({
             message: [hashedKeyQuestionAnswers.toString()],
         });
         setState({ ...state, creatingTransaction: true });
-        /*
         await state.zkappWorkerClient!.createAddParticipantTransaction(nullifierJson, hashedAnswersWithTime);
         await state.zkappWorkerClient!.proveTransaction();
         const transactionJSON = await state.zkappWorkerClient!.getTransactionJSON();
@@ -165,7 +170,6 @@ export default function Home() {
         console.log(`View transaction at ${transactionLink}`);
         setTransactionLink(transactionLink);
         setDisplayText(transactionLink);
-        */
         setState({ ...state, creatingTransaction: false });
         console.log("Adding participant to database");
         console.log(state.publicKey!.toBase58());

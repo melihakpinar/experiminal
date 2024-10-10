@@ -37,13 +37,17 @@ export default class ZkappWorkerClient {
   compileContract() {
     return this._call('compileContract', {});
   }
-
+  
   fetchAccount({ publicKey }: { publicKey: PublicKey }): ReturnType<typeof fetchAccount> {
-    return this._call('fetchAccount', { publicKey58: publicKey.toBase58() }) as ReturnType<typeof fetchAccount>;
+    return this._call('fetchAccount', {
+      publicKey58: publicKey.toBase58(),
+    }) as ReturnType<typeof fetchAccount>;
   }
 
   initZkappInstance(publicKey: PublicKey) {
-    return this._call('initZkappInstance', { publicKey58: publicKey.toBase58() });
+    return this._call('initZkappInstance', {
+      publicKey58: publicKey.toBase58(),
+    });
   }
 
   async getParticipantsCount(): Promise<Field> {

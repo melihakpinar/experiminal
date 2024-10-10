@@ -4,8 +4,8 @@ import styles from '../styles/Home.module.css';
 import ZkappWorkerClient from './zkappWorkerClient';
 import axios from 'axios';
 
-const zkappAddress = "B62qqqHWcqFxpUYqgUwkphf8GjCBCUoYsi9BTdEvekxHz7zZAJnBLKG";
-const transactionFee = 0.1;
+const zkappAddress = "B62qqt7DfCodB6QUQfCahi74LQjeNgNpondae4GTeA5SQvMTDShnZ6w";
+const transactionFee = 0;
 
 export default function Home() {
     const [state, setState] = useState({
@@ -206,6 +206,7 @@ export default function Home() {
             }
         }
         const key_question_answers = data.filter((question) => question.is_key).map((question) => question.yes_answer ? 1 : 0);
+        console.log("key_question_answers.map((ans) => Field(ans)): ", key_question_answers.map((ans) => Field(ans)));
         const hashed_key_question_answers = Poseidon.hash(key_question_answers.map((ans) => Field(ans))).toBigInt();
         console.log("end_timestamp: ", end_timestamp);
         setState({ ...state, creatingTransaction: true });
